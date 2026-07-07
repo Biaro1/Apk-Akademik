@@ -1,0 +1,26 @@
+name: flutter_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  fl_chart: ^0.66.0
+  image_picker: ^1.0.4
+  shared_preferences: ^2.1.2
+  flutter_map: ^4.0.0
+  latlong2: ^0.8.2
+  url_launcher: ^6.1.10
+  geolocator: ^14.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -16,10 +16,11 @@ class HistogramPage extends StatelessWidget {
     // Sort grades for display
     List<String> sortedGrades = gradeCounts.keys.toList()..sort();
 
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue.shade800,
-        title: const Text('Histogram Nilai', style: TextStyle(color: Colors.white)),
+        backgroundColor: theme.colorScheme.primary,
+        title: Text('Histogram Nilai', style: TextStyle(color: theme.colorScheme.onPrimary)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -66,7 +67,7 @@ class HistogramPage extends StatelessWidget {
                       barRods: [
                         BarChartRodData(
                           toY: gradeCounts[sortedGrades[index]]!.toDouble(),
-                          color: Colors.blue.shade800,
+                          color: theme.colorScheme.primary,
                           width: 20,
                         ),
                       ],

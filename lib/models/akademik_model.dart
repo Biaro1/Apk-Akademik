@@ -2,16 +2,14 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../models/course_model.dart';
+import '../models/theme_model.dart';
 import '../services/storage_service.dart';
 
-class MataKuliah {
-  final String nama, ruang, waktu, hari;
-  final Color warna;
-  const MataKuliah(this.nama, this.ruang, this.waktu, this.hari, this.warna);
-}
-
 class Tugas {
-  final String judul, mataKuliah, deadline;
+  final String judul;
+  final String mataKuliah;
+  final String deadline;
   bool sudahDikumpulkan;
 
   Tugas(
@@ -29,6 +27,16 @@ class Tugas {
     final year = int.tryParse(parts[2]);
     if (day == null || month == null || year == null) return null;
     return DateTime(year, month, day);
+  }
+
+  int get daysUntilDeadline {
+    final due = dueDate;
+    if (due == null) return 999;
+    return due.difference(DateTime.now()).inDays;
+  }
+
+  bool get isUrgent {
+    return !sudahDikumpulkan && daysUntilDeadline == 1;
   }
 
   static const Map<String, int> _monthMap = {
@@ -66,59 +74,69 @@ class Tugas {
 }
 
 class Nilai {
-  final String mataKuliah, grade;
+  final String mataKuliah;
+  final String grade;
   final double nilai;
   const Nilai(this.mataKuliah, this.grade, this.nilai);
 }
 
 class Pengumuman {
-  final String judul, isi, tanggal, dari;
+  final String judul;
+  final String isi;
+  final String tanggal;
+  final String dari;
   const Pengumuman(this.judul, this.isi, this.tanggal, this.dari);
 }
 
 class AkademikData {
-  static final List<MataKuliah> jadwal = [
-    MataKuliah(
-      'Pemrograman Mobile',
-      'Lab Komputer 2',
-      '09.00–10:30',
-      'Senin',
-      Colors.blue,
+  static List<CourseModel> jadwal = [
+    CourseModel(
+      id: 'mobile',
+      nama: 'Pemrograman Mobile',
+      ruang: 'Lab Komputer 2',
+      waktu: '09.00–10:30',
+      hari: 'Senin',
+      warnaValue: Colors.blue.toARGB32(),
     ),
-    MataKuliah(
-      'Basis Data Lanjut',
-      'Ruang B.204',
-      '11:00–12:30',
-      'Senin',
-      Colors.green,
+    CourseModel(
+      id: 'basis_data',
+      nama: 'Basis Data Lanjut',
+      ruang: 'Ruang B.204',
+      waktu: '11:00–12:30',
+      hari: 'Senin',
+      warnaValue: Colors.green.toARGB32(),
     ),
-    MataKuliah(
-      'Kecerdasan Buatan',
-      'Ruang A.101',
-      '13:00–15:30',
-      'Rabu',
-      Colors.orange,
+    CourseModel(
+      id: 'ai',
+      nama: 'Kecerdasan Buatan',
+      ruang: 'Ruang A.101',
+      waktu: '13:00–15:30',
+      hari: 'Rabu',
+      warnaValue: Colors.orange.toARGB32(),
     ),
-    MataKuliah(
-      'Jaringan Komputer',
-      'Ruang C.302',
-      '08:00–09:40',
-      'Selasa',
-      Colors.purple,
+    CourseModel(
+      id: 'jaringan',
+      nama: 'Jaringan Komputer',
+      ruang: 'Ruang C.302',
+      waktu: '08:00–09:40',
+      hari: 'Selasa',
+      warnaValue: Colors.purple.toARGB32(),
     ),
-    MataKuliah(
-      'Rekayasa Perangkat Lunak',
-      'Ruang B.101',
-      '10:00–11:40',
-      'Kamis',
-      Colors.red,
+    CourseModel(
+      id: 'rpl',
+      nama: 'Rekayasa Perangkat Lunak',
+      ruang: 'Ruang B.101',
+      waktu: '10:00–11:40',
+      hari: 'Kamis',
+      warnaValue: Colors.red.toARGB32(),
     ),
-    MataKuliah(
-      'Matematika Diskrit',
-      'Ruang A.202',
-      '12:00–13:40',
-      'Jumat',
-      Colors.teal,
+    CourseModel(
+      id: 'diskrit',
+      nama: 'Matematika Diskrit',
+      ruang: 'Ruang A.202',
+      waktu: '12:00–13:40',
+      hari: 'Jumat',
+      warnaValue: Colors.teal.toARGB32(),
     ),
   ];
 
@@ -149,15 +167,32 @@ class AkademikData {
   ];
 
   static Uint8List? profileImageBytes;
-  static String profileName = 'Ari Rahman';
-  static String profileProgramStudi = 'Teknik Informatika';
-  static String profileSemester = '4';
-  static String profileNim = '202410101';
+  static String profileName = '';
+  static String profileProgramStudi = '';
+  static String profileSemester = '';
+  static String profileNim = '';
+  static ThemeSettings themeSettings = ThemeSettings(
+    isDarkMode: false,
+    primaryColorValue: Colors.blue.toARGB32(),
+  );
+  static final ValueNotifier<ThemeSettings> themeSettingsNotifier =
+      ValueNotifier(themeSettings);
 
   static Future<void> loadData() async {
     final loadedTasks = await StorageService.loadTugasList();
     if (loadedTasks != null) {
       tugasList = loadedTasks.map(Tugas.fromJson).toList();
+    }
+
+    final loadedCourses = await StorageService.loadCourseList();
+    if (loadedCourses != null) {
+      jadwal = loadedCourses.map(CourseModel.fromJson).toList();
+    }
+
+    final loadedTheme = await StorageService.loadThemeSettings();
+    if (loadedTheme != null) {
+      themeSettings = ThemeSettings.fromJson(loadedTheme);
+      themeSettingsNotifier.value = themeSettings;
     }
 
     profileImageBytes = await StorageService.loadProfileImage();
@@ -173,6 +208,18 @@ class AkademikData {
     await StorageService.saveTugasList(
       tugasList.map((task) => task.toJson()).toList(),
     );
+  }
+
+  static Future<void> saveCourses() async {
+    await StorageService.saveCourseList(
+      jadwal.map((course) => course.toJson()).toList(),
+    );
+  }
+
+  static Future<void> updateThemeSettings(ThemeSettings updated) async {
+    themeSettings = updated;
+    themeSettingsNotifier.value = updated;
+    await StorageService.saveThemeSettings(updated.toJson());
   }
 
   static Future<void> saveProfileImage(Uint8List? bytes) async {

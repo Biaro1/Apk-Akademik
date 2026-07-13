@@ -5,44 +5,46 @@ import '../models/akademik_model.dart';
 class NilaiPage extends StatelessWidget {
   const NilaiPage({super.key});
 
-  Color _gradeColor(String grade) {
-    if (grade.startsWith('A')) return Colors.green.shade700;
-    if (grade.startsWith('B')) return Colors.blue.shade700;
-    return Colors.orange.shade700;
+  Color _gradeColor(BuildContext context, String grade) {
+    final theme = Theme.of(context);
+    if (grade.startsWith('A')) return theme.colorScheme.primary;
+    if (grade.startsWith('B')) return theme.colorScheme.secondary;
+    return theme.colorScheme.tertiary ?? theme.colorScheme.error;
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final ipk =
         AkademikData.nilaiList.map((n) => n.nilai).reduce((a, b) => a + b) /
         AkademikData.nilaiList.length;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green.shade700,
-        title: const Text(
+        backgroundColor: theme.colorScheme.primary,
+        title: Text(
           'Transkrip Nilai',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: theme.colorScheme.onPrimary),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: theme.colorScheme.onPrimary),
       ),
       body: Container(
-        color: const Color(0xFFF0F2F5),
+        color: theme.colorScheme.surface,
         child: Column(
           children: [
             Container(
               margin: const EdgeInsets.all(12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.shade700,
+                color: theme.colorScheme.primary,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _statItem('IPK', ipk.toStringAsFixed(2)),
-                  _statItem('Mata Kuliah', '${AkademikData.nilaiList.length}'),
-                  _statItem('SKS', '96'),
+                    _statItem(context, 'IPK', ipk.toStringAsFixed(2)),
+                    _statItem(context, 'Mata Kuliah', '${AkademikData.nilaiList.length}'),
+                    _statItem(context, 'SKS', '96'),
                 ],
               ),
             ),
@@ -51,12 +53,12 @@ class NilaiPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Distribusi Grade',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -75,16 +77,16 @@ class NilaiPage extends StatelessWidget {
                             .map((entry) {
                               final grade = entry.key;
                               final count = entry.value;
-                              final color = _gradeColor(grade);
+                              final color = _gradeColor(context, grade);
                               return PieChartSectionData(
                                 value: count.toDouble(),
                                 title: grade,
                                 radius: 50,
                                 color: color,
-                                titleStyle: const TextStyle(
+                                titleStyle: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: theme.colorScheme.onPrimary,
                                 ),
                               );
                             })
@@ -122,13 +124,13 @@ class NilaiPage extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _gradeColor(n.grade).withOpacity(0.1),
+                          color: _gradeColor(context, n.grade).withOpacity(0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           n.grade,
                           style: TextStyle(
-                            color: _gradeColor(n.grade),
+                            color: _gradeColor(context, n.grade),
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -145,20 +147,21 @@ class NilaiPage extends StatelessWidget {
     );
   }
 
-  Widget _statItem(String label, String value) {
+  Widget _statItem(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: theme.colorScheme.onPrimary,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: theme.colorScheme.onPrimary.withOpacity(0.9), fontSize: 12),
         ),
       ],
     );

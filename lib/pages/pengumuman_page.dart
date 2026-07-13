@@ -35,14 +35,15 @@ class _PengumumanPageState extends State<PengumumanPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.red.shade700,
-        title: const Text('Pengumuman', style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: theme.colorScheme.primary,
+        title: Text('Pengumuman', style: TextStyle(color: theme.colorScheme.onPrimary)),
+        iconTheme: IconThemeData(color: theme.colorScheme.onPrimary),
       ),
       body: Container(
-        color: const Color(0xFFF0F2F5),
+        color: theme.colorScheme.surface,
         child: Column(
           children: [
             Padding(
@@ -53,7 +54,7 @@ class _PengumumanPageState extends State<PengumumanPage> {
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
                       hintText: 'Cari pengumuman',
-                      fillColor: Colors.white,
+                      fillColor: theme.colorScheme.surface,
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -83,12 +84,12 @@ class _PengumumanPageState extends State<PengumumanPage> {
                               _selectedSource = source;
                             });
                           },
-                          selectedColor: Colors.red.shade700,
-                          backgroundColor: Colors.white,
+                          selectedColor: theme.colorScheme.primary,
+                          backgroundColor: theme.colorScheme.surface,
                           labelStyle: TextStyle(
                             color: _selectedSource == source
-                                ? Colors.white
-                                : Colors.grey.shade800,
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onSurface,
                           ),
                         );
                       },
@@ -124,14 +125,14 @@ class _PengumumanPageState extends State<PengumumanPage> {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
+                                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.18),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
                                     p.dari,
                                     style: TextStyle(
                                       fontSize: 10,
-                                      color: Colors.red.shade700,
+                                      color: theme.colorScheme.primary,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -139,9 +140,9 @@ class _PengumumanPageState extends State<PengumumanPage> {
                                 const Spacer(),
                                 Text(
                                   p.tanggal,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -159,9 +160,9 @@ class _PengumumanPageState extends State<PengumumanPage> {
                               p.isi,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -184,26 +185,29 @@ class _PengumumanPageState extends State<PengumumanPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              p.judul,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${p.dari} • ${p.tanggal}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            Text(p.isi, style: const TextStyle(fontSize: 14, height: 1.6)),
-          ],
-        ),
-      ),
+      builder: (context) {
+        final theme = Theme.of(context);
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                p.judul,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${p.dari} • ${p.tanggal}',
+                style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 12),
+              Text(p.isi, style: TextStyle(fontSize: 14, height: 1.6, color: theme.colorScheme.onSurface)),
+            ],
+          ),
+        );
+      },
     );
   }
 }

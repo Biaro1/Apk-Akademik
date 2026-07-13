@@ -30,6 +30,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _initializeLocation() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -38,6 +39,7 @@ class _MapPageState extends State<MapPage> {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        if (!mounted) return;
         setState(() {
           _errorMessage = 'Layanan lokasi dimatikan. Silakan nyalakan GPS.';
           _isLoading = false;
@@ -52,6 +54,7 @@ class _MapPageState extends State<MapPage> {
 
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
         setState(() {
           _errorMessage =
               'Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan.';
@@ -65,11 +68,13 @@ class _MapPageState extends State<MapPage> {
             const LocationSettings(accuracy: LocationAccuracy.best),
       );
 
+      if (!mounted) return;
       setState(() {
         _currentPosition = position;
         _isLoading = false;
       });
     } catch (error) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = 'Gagal mendapatkan lokasi: $error';
         _isLoading = false;
@@ -173,12 +178,12 @@ class _MapPageState extends State<MapPage> {
         ? LatLng(_currentPosition!.latitude, _currentPosition!.longitude)
         : MapPage._campus;
 
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.teal.shade700,
-        title: const Text('Lokasi Kampus',
-            style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: theme.colorScheme.primary,
+        title: Text('Lokasi Kampus', style: TextStyle(color: theme.colorScheme.onPrimary)),
+        iconTheme: IconThemeData(color: theme.colorScheme.onPrimary),
       ),
       body: Column(
         children: [
@@ -205,7 +210,7 @@ class _MapPageState extends State<MapPage> {
                           MapPage._campus,
                         ],
                         strokeWidth: 4,
-                        color: Colors.blueAccent,
+                        color: theme.colorScheme.primary,
                       ),
                     ],
                   ),
@@ -215,10 +220,10 @@ class _MapPageState extends State<MapPage> {
                       width: 80,
                       height: 80,
                       point: MapPage._campus,
-                      builder: (ctx) => const Icon(
+                      builder: (ctx) => Icon(
                         Icons.location_pin,
                         size: 48,
-                        color: Colors.red,
+                        color: theme.colorScheme.secondary,
                       ),
                     ),
                     if (_currentPosition != null)
@@ -229,10 +234,10 @@ class _MapPageState extends State<MapPage> {
                           _currentPosition!.latitude,
                           _currentPosition!.longitude,
                         ),
-                        builder: (ctx) => const Icon(
+                        builder: (ctx) => Icon(
                           Icons.my_location,
                           size: 40,
-                          color: Colors.blue,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                   ],
@@ -243,16 +248,16 @@ class _MapPageState extends State<MapPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            color: theme.colorScheme.surface,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(MapPage._label,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600)),
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface)),
                 const SizedBox(height: 6),
                 Text('Koordinat: ${MapPage._latitude}, ${MapPage._longitude}',
-                    style: const TextStyle(color: Colors.grey)),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 14),
                 if (_isLoading)
                   const Padding(
@@ -264,7 +269,7 @@ class _MapPageState extends State<MapPage> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: theme.colorScheme.error),
                     ),
                   ),
                 if (_currentPosition != null)
@@ -292,7 +297,7 @@ class _MapPageState extends State<MapPage> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal.shade700,
+                      backgroundColor: theme.colorScheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),

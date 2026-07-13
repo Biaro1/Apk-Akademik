@@ -48,15 +48,15 @@ class MateriPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.purple.shade700,
-        title: const Text('Materi Kuliah',
-            style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: theme.colorScheme.primary,
+        title: Text('Materi Kuliah', style: TextStyle(color: theme.colorScheme.onPrimary)),
+        iconTheme: IconThemeData(color: theme.colorScheme.onPrimary),
       ),
       body: Container(
-        color: const Color(0xFFF0F2F5),
+        color: theme.colorScheme.surface,
         child: ListView.separated(
           padding: const EdgeInsets.all(12),
           itemCount: _materi.length,
@@ -84,7 +84,7 @@ class MateriPage extends StatelessWidget {
                     style: const TextStyle(fontSize: 11)),
                 trailing: IconButton(
                   icon: const Icon(Icons.download_rounded),
-                  color: Colors.grey,
+                  color: theme.colorScheme.onSurfaceVariant,
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

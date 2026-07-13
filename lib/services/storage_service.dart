@@ -7,6 +7,8 @@ class StorageService {
   static const String _tugasKey = 'akademik_tasks';
   static const String _avatarKey = 'profile_avatar';
   static const String _profileDataKey = 'profile_data';
+  static const String _coursesKey = 'akademik_courses';
+  static const String _settingsKey = 'akademik_settings';
 
   static Future<List<Map<String, dynamic>>?> loadTugasList() async {
     final prefs = await SharedPreferences.getInstance();
@@ -19,10 +21,45 @@ class StorageService {
         .toList();
   }
 
-  static Future<void> saveTugasList(List<Map<String, dynamic>> tugasList) async {
+  static Future<void> saveTugasList(
+    List<Map<String, dynamic>> tugasList,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = jsonEncode(tugasList);
     await prefs.setString(_tugasKey, jsonString);
+  }
+
+  static Future<List<Map<String, dynamic>>?> loadCourseList() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_coursesKey);
+    if (jsonString == null) return null;
+
+    final decoded = jsonDecode(jsonString) as List<dynamic>;
+    return decoded
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+  }
+
+  static Future<void> saveCourseList(
+    List<Map<String, dynamic>> courseList,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = jsonEncode(courseList);
+    await prefs.setString(_coursesKey, jsonString);
+  }
+
+  static Future<Map<String, dynamic>?> loadThemeSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_settingsKey);
+    if (jsonString == null) return null;
+
+    final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+    return Map<String, dynamic>.from(decoded);
+  }
+
+  static Future<void> saveThemeSettings(Map<String, dynamic> settings) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_settingsKey, jsonEncode(settings));
   }
 
   static Future<Uint8List?> loadProfileImage() async {

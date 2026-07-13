@@ -46,6 +46,7 @@ class _TugasPageState extends State<TugasPage> {
   }
 
   void _editTugas(int index) {
+    final theme = Theme.of(context);
     final task = AkademikData.tugasList[index];
     final formKey = GlobalKey<FormState>();
     String judul = task.judul;
@@ -126,7 +127,8 @@ class _TugasPageState extends State<TugasPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange.shade700,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -159,6 +161,7 @@ class _TugasPageState extends State<TugasPage> {
   }
 
   void _addTugas() {
+    final theme = Theme.of(context);
     final formKey = GlobalKey<FormState>();
     String judul = '';
     String mataKuliah = '';
@@ -235,7 +238,8 @@ class _TugasPageState extends State<TugasPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange.shade700,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -266,43 +270,46 @@ class _TugasPageState extends State<TugasPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final belum = AkademikData.tugasList
         .where((t) => !t.sudahDikumpulkan)
         .length;
-
+ 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.orange.shade700,
-        title: const Text(
+        backgroundColor: theme.colorScheme.primary,
+        title: Text(
           'Daftar Tugas',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: theme.colorScheme.onPrimary),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: theme.colorScheme.onPrimary),
       ),
       body: Container(
-        color: const Color(0xFFF0F2F5),
+        color: theme.colorScheme.surface,
         child: Column(
           children: [
             Container(
               margin: const EdgeInsets.all(12),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.orange.shade700,
+                color: theme.colorScheme.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _statItem('Belum', '$belum', Colors.red.shade100),
+                  _statItem(context, 'Belum', '$belum', theme.colorScheme.errorContainer),
                   _statItem(
+                    context,
                     'Selesai',
                     '${AkademikData.tugasList.length - belum}',
-                    Colors.green.shade100,
+                    theme.colorScheme.secondaryContainer,
                   ),
                   _statItem(
+                    context,
                     'Total',
                     '${AkademikData.tugasList.length}',
-                    Colors.white,
+                    theme.colorScheme.onPrimary.withOpacity(0.12),
                   ),
                 ],
               ),
@@ -315,7 +322,7 @@ class _TugasPageState extends State<TugasPage> {
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
                       hintText: 'Cari tugas, mata kuliah, atau deadline',
-                      fillColor: Colors.white,
+                      fillColor: theme.colorScheme.surface,
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -347,12 +354,12 @@ class _TugasPageState extends State<TugasPage> {
                                 _filter = filter;
                               });
                             },
-                            selectedColor: Colors.orange.shade700,
-                            backgroundColor: Colors.white,
+                            selectedColor: theme.colorScheme.primary,
+                            backgroundColor: theme.colorScheme.surface,
                             labelStyle: TextStyle(
                               color: _filter == filter
-                                  ? Colors.white
-                                  : Colors.grey.shade800,
+                                  ? theme.colorScheme.onPrimary
+                                  : theme.colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -372,13 +379,14 @@ class _TugasPageState extends State<TugasPage> {
                   final t = _filteredTugas[i];
                   final originalIndex = AkademikData.tugasList.indexOf(t);
                   return Card(
+                    color: theme.cardColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
                       leading: Checkbox(
                         value: t.sudahDikumpulkan,
-                        activeColor: Colors.green,
+                        activeColor: theme.colorScheme.primary,
                         onChanged: (_) => _toggleTugas(originalIndex),
                       ),
                       title: Text(
@@ -389,12 +397,44 @@ class _TugasPageState extends State<TugasPage> {
                           decoration: t.sudahDikumpulkan
                               ? TextDecoration.lineThrough
                               : null,
-                          color: t.sudahDikumpulkan ? Colors.grey : null,
+                          color: t.sudahDikumpulkan
+                              ? theme.colorScheme.onSurfaceVariant
+                              : theme.colorScheme.onSurface,
                         ),
                       ),
-                      subtitle: Text(
-                        '${t.mataKuliah} • Deadline: ${t.deadline}',
-                        style: const TextStyle(fontSize: 11),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${t.mataKuliah} • Deadline: ${t.deadline}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          if (t.isUrgent)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.errorContainer,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '⚠ Deadline Besok!',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: theme.colorScheme.onError,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       trailing: PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert),
@@ -425,7 +465,8 @@ class _TugasPageState extends State<TugasPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.orange.shade700,
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
         onPressed: _addTugas,
         icon: const Icon(Icons.add),
         label: const Text('Tambah Tugas'),
@@ -433,7 +474,10 @@ class _TugasPageState extends State<TugasPage> {
     );
   }
 
-  Widget _statItem(String label, String value, Color bg) {
+  Widget _statItem(BuildContext context, String label, String value, Color bg) {
+    final theme = Theme.of(context);
+    final brightness = ThemeData.estimateBrightnessForColor(bg);
+    final contrastText = brightness == Brightness.dark ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -444,15 +488,15 @@ class _TugasPageState extends State<TugasPage> {
         children: [
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: contrastText,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 11),
+            style: TextStyle(color: contrastText.withOpacity(0.75), fontSize: 11),
           ),
         ],
       ),

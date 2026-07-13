@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import '../models/akademik_model.dart';
+import '../services/auth_service.dart';
 import '../widgets/info_card.dart';
 import '../widgets/menu_item_widget.dart';
 import '../widgets/schedule_tile.dart';
@@ -12,6 +12,7 @@ import 'tugas_page.dart';
 import 'materi_page.dart';
 import 'pengumuman_page.dart';
 import 'map_page.dart';
+import 'settings_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -22,7 +23,6 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   Uint8List? _profileImageBytes;
-  String _profileName = AkademikData.profileName;
   String _profileProgramStudi = AkademikData.profileProgramStudi;
   String _profileSemester = AkademikData.profileSemester;
   String _profileNim = AkademikData.profileNim;
@@ -31,7 +31,6 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _profileImageBytes = AkademikData.profileImageBytes;
-    _profileName = AkademikData.profileName;
     _profileProgramStudi = AkademikData.profileProgramStudi;
     _profileSemester = AkademikData.profileSemester;
     _profileNim = AkademikData.profileNim;
@@ -41,245 +40,8 @@ class _DashboardPageState extends State<DashboardPage> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final bytes = await image.readAsBytes();
-      await AkademikData.saveProfileImage(bytes);
-      if (!mounted) return;
-      setState(() {
-        _profileImageBytes = bytes;
-      });
-    }
-  }
-
-  Future<void> _showEditProfileDialog() async {
-    final nameController = TextEditingController(text: _profileName);
-    final programController = TextEditingController(text: _profileProgramStudi);
-    final semesterController = TextEditingController(text: _profileSemester);
-    final nimController = TextEditingController(text: _profileNim);
-
-    await showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Edit Profil'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Lengkap',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: programController,
-                  decoration: const InputDecoration(
-                    labelText: 'Program Studi',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: semesterController,
-                  decoration: const InputDecoration(
-                    labelText: 'Semester',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: nimController,
-                  decoration: const InputDecoration(
-                    labelText: 'NIM',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (!mounted) return;
-                // ignore: use_build_context_synchronously
-                final messenger = ScaffoldMessenger.of(context);
-                // ignore: use_build_context_synchronously
-                final navigator = Navigator.of(context);
-
-                AkademikData.saveProfileData(
-                  name: nameController.text.trim(),
-                  programStudi: programController.text.trim(),
-                  semester: semesterController.text.trim(),
-                  nim: nimController.text.trim(),
-                ).then((_) {
-                  if (!mounted) return;
-                  setState(() {
-                    _profileName = AkademikData.profileName;
-                    _profileProgramStudi = AkademikData.profileProgramStudi;
-                    _profileSemester = AkademikData.profileSemester;
-                    _profileNim = AkademikData.profileNim;
-                  });
-                  // ignore: use_build_context_synchronously
-                  navigator.pop(dialogContext);
-                  // ignore: use_build_context_synchronously
-                  messenger.showSnackBar(
-                    const SnackBar(content: Text('Profil berhasil diperbarui')),
-                  );
-                });
-              },
-              child: const Text('Simpan Profil'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showProfileMenu() async {
-    await showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Colors.blue.shade800,
-                      backgroundImage: _profileImageBytes != null
-                          ? MemoryImage(_profileImageBytes!)
-                          : null,
-                      child: _profileImageBytes == null
-                          ? const Text(
-                              'AR',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Profil Saya',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$_profileName • $_profileProgramStudi',
-                            style: const TextStyle(color: Colors.grey, fontSize: 13),
-                          ),
-                          Text(
-                            'Semester $_profileSemester • NIM $_profileNim',
-                            style: const TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _profileActionTile(
-                  Icons.camera_alt_outlined,
-                  'Ubah Foto Profil',
-                  () async {
-                    Navigator.pop(sheetContext);
-                    await _pickImage();
-                  },
-                ),
-                _profileActionTile(
-                  Icons.edit_outlined,
-                  'Edit Profil',
-                  () async {
-                    Navigator.pop(sheetContext);
-                    await _showEditProfileDialog();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.badge_outlined),
-                  title: const Text('Lihat Detail Profil'),
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-                    showDialog(
-                      context: context,
-                      builder: (dialogContext) {
-                        return AlertDialog(
-                          title: const Text('Detail Profil'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Nama: $_profileName'),
-                              const SizedBox(height: 6),
-                              Text('Program Studi: $_profileProgramStudi'),
-                              const SizedBox(height: 6),
-                              Text('Status: Aktif'),
-                              const SizedBox(height: 6),
-                              Text('Semester: $_profileSemester'),
-                              const SizedBox(height: 6),
-                              Text('NIM: $_profileNim'),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext),
-                              child: const Text('Tutup'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-                _profileActionTile(
-                  Icons.delete_outline,
-                  'Hapus Foto Profil',
-                  () async {
-                    Navigator.pop(sheetContext);
-                    await AkademikData.saveProfileImage(null);
-                    if (!mounted) return;
-                    setState(() {
-                      _profileImageBytes = null;
-                    });
-                  },
-                ),
-              ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHistogram() {
+  Widget _buildHistogram(BuildContext context) {
+    final theme = Theme.of(context);
     // Count grades
     Map<String, int> gradeCounts = {};
     for (var nilai in AkademikData.nilaiList) {
@@ -335,7 +97,7 @@ class _DashboardPageState extends State<DashboardPage> {
             barRods: [
               BarChartRodData(
                 toY: gradeCounts[sortedGrades[index]]!.toDouble(),
-                color: Colors.blue.shade800,
+                color: theme.colorScheme.primary,
                 width: 20,
               ),
             ],
@@ -359,23 +121,15 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _profileActionTile(
-    IconData icon,
-    String title,
-    VoidCallback onTap,
-  ) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      onTap: onTap,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final tugasBelumKumpul = AkademikData.tugasList
         .where((t) => !t.sudahDikumpulkan)
         .length;
+    final displayName = AuthService.userName.isNotEmpty
+        ? AuthService.userName
+        : AkademikData.profileName;
+    final greetingName = displayName.isNotEmpty ? displayName : 'Mahasiswa';
     final upcomingTasks =
         AkademikData.tugasList.where((t) => !t.sudahDikumpulkan).toList()
           ..sort((a, b) {
@@ -384,17 +138,32 @@ class _DashboardPageState extends State<DashboardPage> {
             return aDate.compareTo(bDate);
           });
     final nextTask = upcomingTasks.isNotEmpty ? upcomingTasks.first : null;
-    final nextClass = AkademikData.jadwal.isNotEmpty ? AkademikData.jadwal.first : null;
+
+    final todayName = _weekdayName(DateTime.now().weekday);
+    final todayCourses = AkademikData.jadwal
+        .where((course) => course.hari.toLowerCase() == todayName.toLowerCase())
+        .toList();
+    final favoriteCourses = AkademikData.jadwal
+        .where((course) => course.isFavorite)
+        .toList();
+    final todaysSchedule = todayCourses
+      ..sort((a, b) {
+        if (a.isFavorite && !b.isFavorite) return -1;
+        if (!a.isFavorite && b.isFavorite) return 1;
+        return 0;
+      });
+    final nextClass = todaysSchedule.isNotEmpty
+        ? todaysSchedule.first
+        : AkademikData.jadwal.isNotEmpty
+        ? AkademikData.jadwal.first
+        : null;
+
     final ipk = AkademikData.nilaiList.isNotEmpty
-        ? AkademikData.nilaiList
-                .map((n) => n.nilai)
-                .reduce((a, b) => a + b) /
-            AkademikData.nilaiList.length
+        ? AkademikData.nilaiList.map((n) => n.nilai).reduce((a, b) => a + b) /
+              AkademikData.nilaiList.length
         : 0.0;
     final targetIpk = 3.75;
-    final ipkProgress = targetIpk > 0
-        ? (ipk / targetIpk).clamp(0.0, 1.0)
-        : 0.0;
+    final ipkProgress = targetIpk > 0 ? (ipk / targetIpk).clamp(0.0, 1.0) : 0.0;
 
     final menuItems = [
       {
@@ -435,21 +204,42 @@ class _DashboardPageState extends State<DashboardPage> {
       },
     ];
 
+    final theme = Theme.of(context);
+    final headerColor = theme.colorScheme.primary;
+    final headerContrast = theme.colorScheme.primaryContainer;
+
     final summaryCards = [
-      ['IPK', ipk.toStringAsFixed(2), 'Kumulatif', Colors.blue.shade800],
-      ['SKS Ditempuh', '96', 'dari 144 SKS', Colors.green.shade800],
-      ['Kehadiran', '87%', 'Semester ini', Colors.orange.shade800],
-      ['Tugas Aktif', '$tugasBelumKumpul', 'Belum dikumpulkan', Colors.purple.shade800],
+      ['IPK', ipk.toStringAsFixed(2), 'Kumulatif', theme.colorScheme.primary],
+      ['SKS Ditempuh', '96', 'dari 144 SKS', theme.colorScheme.secondary],
+      ['Kehadiran', '87%', 'Semester ini', theme.colorScheme.tertiary ?? theme.colorScheme.primary],
+      [
+        'Tugas Aktif',
+        '$tugasBelumKumpul',
+        'Belum dikumpulkan',
+        theme.colorScheme.error,
+      ],
     ];
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: const Color(0xFFF4F7FF),
+      extendBodyBehindAppBar: false,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: headerColor,
         elevation: 0,
         centerTitle: false,
+        iconTheme: IconThemeData(color: theme.colorScheme.onPrimary),
+        titleTextStyle: TextStyle(
+          color: theme.colorScheme.onPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
         title: const Text('Dashboard Akademik'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: theme.colorScheme.onPrimary),
+            onPressed: () => _navigate(context, const SettingsPage()),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -458,20 +248,22 @@ class _DashboardPageState extends State<DashboardPage> {
               width: double.infinity,
               padding: EdgeInsets.fromLTRB(
                 20,
-                MediaQuery.of(context).padding.top + kToolbarHeight + 24,
+                20,
                 20,
                 36,
               ),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1A73E8), Color(0xFF4C8DF5)],
+                gradient: LinearGradient(
+                  colors: [headerColor, headerContrast],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(32),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.18),
+                    color: theme.shadowColor.withOpacity(0.18),
                     blurRadius: 22,
                     offset: const Offset(0, 10),
                   ),
@@ -488,7 +280,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       height: 100,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.08),
+                        color: theme.colorScheme.onPrimary.withOpacity(0.08),
                       ),
                     ),
                   ),
@@ -502,18 +294,18 @@ class _DashboardPageState extends State<DashboardPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Halo, selamat belajar!',
+                                Text(
+                                  'Halo, $greetingName!',
                                   style: TextStyle(
-                                    color: Colors.white70,
+                                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
                                     fontSize: 14,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  _profileName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  displayName,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onPrimary,
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -522,7 +314,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 Text(
                                   'Tetap fokus dan capai target IPK-mu hari ini.',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.95),
                                     fontSize: 13,
                                   ),
                                 ),
@@ -531,15 +323,15 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                           CircleAvatar(
                             radius: 30,
-                            backgroundColor: Colors.white24,
+                            backgroundColor: theme.colorScheme.onPrimary.withValues(alpha: 0.24),
                             backgroundImage: _profileImageBytes != null
                                 ? MemoryImage(_profileImageBytes!)
                                 : null,
                             child: _profileImageBytes == null
                                 ? Text(
-                                    _profileInitials,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    _profileInitials(displayName),
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onPrimary,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -553,9 +345,18 @@ class _DashboardPageState extends State<DashboardPage> {
                         spacing: 10,
                         runSpacing: 10,
                         children: [
-                          _buildStatusChip('Semester $_profileSemester'),
-                          _buildStatusChip('NIM $_profileNim'),
-                          _buildStatusChip('Program $_profileProgramStudi'),
+                          _buildStatusChip(
+                            context,
+                            'Semester ${_profileSemester.isNotEmpty ? _profileSemester : 'Belum diatur'}',
+                          ),
+                          _buildStatusChip(
+                            context,
+                            'NIM ${_profileNim.isNotEmpty ? _profileNim : 'Belum diatur'}',
+                          ),
+                          _buildStatusChip(
+                            context,
+                            'Program ${_profileProgramStudi.isNotEmpty ? _profileProgramStudi : 'Belum diatur'}',
+                          ),
                         ],
                       ),
                     ],
@@ -581,11 +382,11 @@ class _DashboardPageState extends State<DashboardPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Performa Minggu Ini',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: Colors.grey,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -600,7 +401,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   Text(
                                     '${(ipkProgress * 100).toStringAsFixed(0)}% dari target ${targetIpk.toStringAsFixed(2)}',
                                     style: TextStyle(
-                                      color: Colors.blue.shade800,
+                                      color: theme.colorScheme.primary,
                                     ),
                                   ),
                                 ],
@@ -610,12 +411,12 @@ class _DashboardPageState extends State<DashboardPage> {
                               width: 70,
                               height: 70,
                               decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
+                                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.28),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Icon(
                                 Icons.school,
-                                color: Colors.blue.shade800,
+                                color: theme.colorScheme.primary,
                                 size: 34,
                               ),
                             ),
@@ -624,7 +425,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    _buildSectionHeader('Ringkasan Akademik', Icons.school),
+                    _buildSectionHeader(context, 'Ringkasan Akademik', Icons.school),
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -647,9 +448,12 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Target IPK',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -657,7 +461,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.blue.shade800,
+                                color: theme.colorScheme.primary,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -666,14 +470,17 @@ class _DashboardPageState extends State<DashboardPage> {
                               child: LinearProgressIndicator(
                                 value: ipkProgress,
                                 minHeight: 10,
-                                color: Colors.blue.shade800,
-                                backgroundColor: Colors.blue.shade100,
+                                color: theme.colorScheme.primary,
+                                backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               '${(ipkProgress * 100).toStringAsFixed(0)}% tercapai',
-                              style: const TextStyle(fontSize: 12),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
@@ -689,19 +496,20 @@ class _DashboardPageState extends State<DashboardPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Tugas Terdekat',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     nextTask?.judul ?? 'Semua tugas selesai',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -711,9 +519,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                     nextTask != null
                                         ? '${nextTask.mataKuliah} • ${nextTask.deadline}'
                                         : 'Tidak ada tugas baru',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.grey,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
@@ -729,19 +537,20 @@ class _DashboardPageState extends State<DashboardPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Kelas Berikutnya',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     nextClass?.nama ?? 'Tidak ada jadwal',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -751,9 +560,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                     nextClass != null
                                         ? '${nextClass.hari} • ${nextClass.waktu}'
                                         : 'Tambahkan jadwal baru',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.grey,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
@@ -764,7 +573,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildSectionHeader('Menu Layanan', Icons.grid_view),
+                    _buildSectionHeader(context, 'Menu Layanan', Icons.grid_view),
                     SizedBox(
                       height: 116,
                       child: ListView(
@@ -775,39 +584,102 @@ class _DashboardPageState extends State<DashboardPage> {
                             icon: item['icon'] as IconData,
                             label: item['label'] as String,
                             color: item['color'] as MaterialColor,
-                            onTap: () => _navigate(context, item['page'] as Widget),
+                            onTap: () =>
+                                _navigate(context, item['page'] as Widget),
                           );
                         }).toList(),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildSectionHeader('Distribusi Nilai', Icons.bar_chart),
+                    _buildSectionHeader(context, 'Distribusi Nilai', Icons.bar_chart),
                     _roundedCard(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: SizedBox(height: 200, child: _buildHistogram()),
+                        child: SizedBox(height: 200, child: _buildHistogram(context)),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildSectionHeader('Jadwal Hari Ini', Icons.schedule),
+                    if (favoriteCourses.isNotEmpty) ...[
+                      _buildSectionHeader(context, 'Mata Kuliah Favorit', Icons.star),
+                      _roundedCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(14.0),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: favoriteCourses.map((course) {
+                              return Chip(
+                                avatar: CircleAvatar(
+                                  backgroundColor: course.warna,
+                                  child: Icon(
+                                    Icons.star,
+                                    size: 16,
+                                    color: theme.colorScheme.onPrimary,
+                                  ),
+                                ),
+                                backgroundColor: course.warna.withValues(alpha: 0.15),
+                                label: Text(course.nama),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    _buildSectionHeader(context, 'Jadwal Hari Ini', Icons.schedule),
                     _roundedCard(
                       child: Column(
-                        children: List.generate(
-                          AkademikData.jadwal.take(3).length,
-                          (i) {
-                            final mk = AkademikData.jadwal[i];
-                            return Column(
-                              children: [
-                                ScheduleTile(mk),
-                                if (i < 2) const Divider(height: 1),
+                        children: todaysSchedule.isNotEmpty
+                            ? List.generate(todaysSchedule.length, (i) {
+                                final mk = todaysSchedule[i];
+                                return Column(
+                                  children: [
+                                    ScheduleTile(mk),
+                                    if (i < todaysSchedule.length - 1)
+                                      const Divider(height: 1),
+                                  ],
+                                );
+                              })
+                            : [
+                                Padding(
+                                  padding: const EdgeInsets.all(18.0),
+                                  child: Text(
+                                    'Tidak ada jadwal untuk $todayName. Coba lihat jadwal minggu ini atau tambahkan matkul favorit.',
+                                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                                  ),
+                                ),
                               ],
-                            );
-                          },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionHeader(context, 'Countdown UTS/UAS', Icons.timer),
+                    _roundedCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _countdownText(DateTime(2025, 7, 1), 'UTS'),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _countdownText(DateTime(2025, 7, 8), 'UAS'),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildSectionHeader('Aksi Cepat', Icons.flash_on),
+                    _buildSectionHeader(context, 'Aksi Cepat', Icons.flash_on),
                     Row(
                       children: [
                         Expanded(
@@ -818,7 +690,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            onPressed: () => _navigate(context, const TugasPage()),
+                            onPressed: () =>
+                                _navigate(context, const TugasPage()),
                             icon: const Icon(Icons.check_circle_outline),
                             label: const Text('Kumpulkan Tugas'),
                           ),
@@ -828,12 +701,13 @@ class _DashboardPageState extends State<DashboardPage> {
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(color: Color(0xFF1A73E8)),
+                              side: BorderSide(color: theme.colorScheme.primary),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            onPressed: () => _navigate(context, const NilaiPage()),
+                            onPressed: () =>
+                                _navigate(context, const NilaiPage()),
                             icon: const Icon(Icons.bar_chart),
                             label: const Text('Lihat Transkrip'),
                           ),
@@ -851,54 +725,98 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withOpacity(0.24),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 18, color: theme.colorScheme.primary),
           ),
-          child: Icon(icon, size: 18, color: Colors.blue.shade700),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.blueGrey.shade900,
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 
-  String get _profileInitials {
-    final parts = _profileName.trim().split(' ');
+  String _profileInitials(String name) {
+    final parts = name.trim().split(' ');
     if (parts.length >= 2) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
-    return _profileName.isEmpty
-        ? 'AR'
-        : _profileName.substring(0, _profileName.length >= 2 ? 2 : _profileName.length).toUpperCase();
+    if (name.trim().isEmpty) {
+      return 'US';
+    }
+    return name.trim().substring(0, name.trim().length >= 2 ? 2 : name.trim().length).toUpperCase();
   }
 
-  Widget _buildStatusChip(String label) {
+  String _weekdayName(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return 'Senin';
+      case DateTime.tuesday:
+        return 'Selasa';
+      case DateTime.wednesday:
+        return 'Rabu';
+      case DateTime.thursday:
+        return 'Kamis';
+      case DateTime.friday:
+        return 'Jumat';
+      case DateTime.saturday:
+        return 'Sabtu';
+      case DateTime.sunday:
+      default:
+        return 'Minggu';
+    }
+  }
+
+  String _countdownText(DateTime date, String label) {
+    final days = date.difference(DateTime.now()).inDays;
+    if (days < 0) {
+      return '$label: sudah berlalu';
+    }
+    if (days == 0) {
+      return '$label: hari ini';
+    }
+    return '$label: $days hari lagi';
+  }
+
+  Widget _buildStatusChip(BuildContext context, String label) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBackground = theme.colorScheme.primaryContainer.withValues(alpha: isDark ? 0.22 : 0.14);
+    // Choose text color with explicit contrast decision so it remains readable regardless of theme
+    final brightnessOfPrimary = ThemeData.estimateBrightnessForColor(theme.colorScheme.primary);
+    final labelColor = brightnessOfPrimary == Brightness.dark
+        ? theme.colorScheme.onPrimary
+        : theme.colorScheme.onSurface;
+
     return Chip(
       label: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: labelColor,
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
       ),
-      backgroundColor: Colors.white24,
-      side: const BorderSide(color: Colors.white24),
+      backgroundColor: chipBackground,
+      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.32)),
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
     );
   }

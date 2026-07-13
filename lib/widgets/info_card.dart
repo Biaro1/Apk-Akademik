@@ -7,31 +7,41 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelColor = theme.colorScheme.onSurfaceVariant;
+    final valueColor = color;
+    final subColor = theme.colorScheme.onSurfaceVariant;
+    final backgroundColor = theme.colorScheme.surface;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
+        color: backgroundColor,
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.16), Colors.white],
+          colors: [color.withOpacity(0.12), backgroundColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withOpacity(0.16)),
+        border: Border.all(color: color.withOpacity(0.14)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: theme.shadowColor.withOpacity(0.08),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text(label, style: TextStyle(fontSize: 11, color: labelColor)),
         const SizedBox(height: 4),
         Text(value,
             style: TextStyle(
-                fontSize: 22, fontWeight: FontWeight.w500, color: color)),
-        Text(sub, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+              color: valueColor,
+            )),
+        Text(sub, style: TextStyle(fontSize: 11, color: subColor)),
       ]),
     );
   }

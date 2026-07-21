@@ -1,3 +1,11 @@
+# Nama Anggota
+BILAL ABHIYANTARA
+(24.01.53.0015) 
+Cesario Debarte Da cruz
+(24.01.53.0022)
+Radit Gasya Putra Andisa
+(24.01.53.0017) 
+
 # Apk-Akademik
 
 Proyek aplikasi mobile akademik yang dibangun menggunakan Flutter Framework. Repositori ini dikembangkan untuk mengelola kebutuhan sistem informasi akademik berbasis mobile.
